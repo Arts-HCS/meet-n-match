@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Group</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .form-group button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .form-group button:hover {
+            background-color: #0056b3;
+        }
+
+        #map {
+            height: 400px;
+            width: 100%;
+        }
+
+        .autocomplete-suggestions {
+            border: 1px solid #ddd;
+            background: #fff;
+            overflow: auto;
+            position: absolute;
+            max-height: 150px;
+            z-index: 1000;
+        }
+
+        .autocomplete-suggestion {
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .autocomplete-suggestion:hover {
+            background: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>Create New Group</h1>
+    </header>
+    <main class="container">
+        <form method="post" action="{{ url_for('save_group') }}">
+            <div class="form-group">
+                <label for="group_name">Name of the group:</label>
+                <input type="text" id="group_name" name="group_name" required>
+            </div>
+            <div class="form-group">
+                <label for="max_participants">Mximum number of members:</label>
+                <input type="number" id="max_participants" name="max_participants" required>
+            </div>
+            <div class="form-group">
+                <label for="min_age">Minimum age:</label>
+                <input type="number" id="min_age" name="min_age" required>
+            </div>
+            <div class="form-group">
+                <label for="max_age">Maximum age:</label>
+                <input type="number" id="max_age" name="max_age" required>
+            </div>
+            <div class="form-group">
+                <label for="gender">Gender:</label>
+                <select id="gender" name="gender" required>
+                    <option value="">Select a gender</option>
+                    <option value="masculino">Male</option>
+                    <option value="femenino">Female</option>
+                    <option value="otro">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="tags">Tags:</label>
+                <input type="text" id="tags" name="tags" value="{{ interest }}" required>
+            </div>
+            <div class="form-group">
+                <label for="location">Address:</label>
+                <input type="text" name="location" id="location" required>
+                <button type="button" id="search-button">Search</button>
+            </div>
+            <div id="map"></div>
+            <div class="form-group">
+                <button type="submit">Create Group</button>
+            </div>
+        </form>
+    </main>
+
+    <script>
+        const interests = {{ interests | tojson }};
+        const locationInput = document.getElementById('location');
+        const searchButton = document.getElementById('search-button');
+      
+        // Inicializa el mapa y establece la vista en una ubicación predeterminada
+        const map = L.map('map').setView([51.505, -0.09], 13);
+
+        // Agrega la capa de OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Variables para almacenar el marcador actual y el temporizador de debounce
+        let currentMarker = null;
+
+        // Función para centrar el mapa en una ubicación y agregar un marcador
+        function setMapLocation(lat, lon) {
+            map.setView([lat, lon], 13);
+
+            if (currentMarker) {
+                map.removeLayer(currentMarker);
+            }
+
+            currentMarker = L.marker([lat, lon]).addTo(map)
+                .bindPopup("Ubicación del Grupo")
+                .openPopup();
+        }
+
+        // Función para obtener la ubicación del usuario y centrar el mapa en ella
+        function onLocationFound(e) {
+            const lat = e.latlng.lat;
+            const lon = e.latlng.lng;
+
+            setMapLocation(lat, lon);
+
+            // Actualiza el campo de ubicación con la dirección
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+                .then(response => response.json())
+                .then(data => {
+                    const locationName = data.display_name;
+                    locationInput.value = locationName;
+                });
+        }
+
+        function onLocationError(e) {
+            alert(e.message);
+        }
+
+        // Solicita la ubicación del usuario
+        map.on('locationfound', onLocationFound);
+        map.on('locationerror', onLocationError);
+        map.locate({setView: true, maxZoom: 16});
+
+        // Maneja el evento del botón de búsqueda
+        searchButton.addEventListener('click', () => {
+            const locationText = locationInput.value;
+            if (locationText) {
+                fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(locationText)}&format=json&addressdetails=1`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.length > 0) {
+                            const { lat, lon } = data[0];
+                            setMapLocation(lat, lon);
+
+                            // Actualiza el campo de ubicación con el nombre de la ubicación
+                            locationInput.value = data[0].display_name;
+                        } else {
+                            alert('No se encontró la ubicación.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error al buscar la ubicación:', error);
+                        alert('No se pudo buscar la ubicación.');
+                    });
+            }
+        });
+    </script>
+    <footer></footer>
+</body>
+</html>

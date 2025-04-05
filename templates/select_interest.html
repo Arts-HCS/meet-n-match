@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Select Interest</title>
+  <link rel="stylesheet" href="../static/css/style.css">
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    #map {
+      height: 400px;
+      width: 100%;
+    }
+    .autocomplete-suggestions {
+      border: 1px solid #ddd;
+      background: #fff;
+      overflow: auto;
+      position: absolute;
+      max-height: 150px;
+      z-index: 1000;
+    }
+    .autocomplete-suggestion {
+      padding: 10px;
+      cursor: pointer;
+    }
+    .autocomplete-suggestion:hover {
+      background: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1>Select Your Interest and Location</h1>
+  </header>
+  <main>
+    <form action="/save_interest" method="post" class="form">
+      <label for="interest">Interest:</label>
+      <input type="text" name="interest" id="interest" required oninput="filterSuggestions()" autocomplete="off">
+      <div id="suggestions" class="autocomplete-suggestions"></div>
+
+      <label for="location">Location:</label>
+      <input type="text" name="location" id="location" required>
+      <button type="button" id="search-button">Search</button>
+
+      <button type="submit">Submit</button>
+    </form>
+
+    <div id="map"></div>
+
+    <button onclick="window.location.href='{{ url_for('create_group') }}'">Create Group</button>
+
+    <script>
+      const interests = {{ interests | tojson }};
+      const locationInput = document.getElementById('location');
+      const searchButton = document.getElementById('search-button');
+      
+      function filterSuggestions() {
+        const input = document.getElementById('interest').value.toLowerCase();
+        const suggestions = interests.filter(interest => interest.toLowerCase().includes(input));
+        displaySuggestions(suggestions);
+      }
+
+      function displaySuggestions(suggestions) {
+        const suggestionsContainer = document.getElementById('suggestions');
+        suggestionsContainer.innerHTML = '';
+        suggestions.forEach(suggestion => {
+          const div = document.createElement('div');
+          div.textContent = suggestion;
+          div.className = 'autocomplete-suggestion';
+          div.onclick = () => {
+            document.getElementById('interest').value = suggestion;
+            suggestionsContainer.innerHTML = '';
+          };
+          suggestionsContainer.appendChild(div);
+        });
+        if (suggestions.length > 0) {
+          suggestionsContainer.style.display = 'block';
+        } else {
+          suggestionsContainer.style.display = 'none';
+        }
+      }
+
+      document.addEventListener('click', function(event) {
+        const suggestionsContainer = document.getElementById('suggestions');
+        if (!event.target.closest('#interest') && !event.target.closest('#suggestions')) {
+          suggestionsContainer.innerHTML = '';
+          suggestionsContainer.style.display = 'none';
+        }
+      });
+
+      document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+          const suggestionsContainer = document.getElementById('suggestions');
+          suggestionsContainer.innerHTML = '';
+          suggestionsContainer.style.display = 'none';
+        }
+      });
+
+      // Initialize the map and set view to a default location
+      const map = L.map('map').setView([51.505, -0.09], 13);
+
+      // Add the OpenStreetMap layer
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+
+      // Variables for storing the current marker and debounce timer
+      let currentMarker = null;
+
+      // Function to center the map on a location and add a marker
+      function setMapLocation(lat, lon) {
+        map.setView([lat, lon], 13);
+
+        if (currentMarker) {
+          map.removeLayer(currentMarker);
+        }
+
+        currentMarker = L.marker([lat, lon]).addTo(map)
+          .bindPopup("Location")
+          .openPopup();
+      }
+
+      // Function to get the user's location and center the map on it
+      function onLocationFound(e) {
+        const lat = e.latlng.lat;
+        const lon = e.latlng.lng;
+
+        setMapLocation(lat, lon);
+
+        // Update the location field with the address
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+          .then(response => response.json())
+          .then(data => {
+            const locationName = data.display_name;
+            locationInput.value = locationName;
+          });
+      }
+
+      function onLocationError(e) {
+        alert(e.message);
+      }
+
+      // Request the user's location
+      map.on('locationfound', onLocationFound);
+      map.on('locationerror', onLocationError);
+      map.locate({setView: true, maxZoom: 16});
+
+      // Handle the search button event
+      searchButton.addEventListener('click', () => {
+        const locationText = locationInput.value;
+        if (locationText) {
+          fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(locationText)}&format=json&addressdetails=1`)
+            .then(response => response.json())
+            .then(data => {
+              if (data.length > 0) {
+                const { lat, lon } = data[0];
+                setMapLocation(lat, lon);
+
+                // Update the location field with the location name
+                locationInput.value = data[0].display_name;
+              } else {
+                alert('Location not found.');
+              }
+            })
+            .catch(error => {
+              console.error('Error searching for location:', error);
+              alert('Unable to search for location.');
+            });
+        }
+      });
+    </script>
+  </main>
+  <footer></footer>
+</body>
+</html>

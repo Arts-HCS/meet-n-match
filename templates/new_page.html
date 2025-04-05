@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Page</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .form-group button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .form-group button:hover {
+            background-color: #0056b3;
+        }
+
+        #map {
+            height: 400px;
+            width: 100%;
+        }
+
+        .autocomplete-suggestions {
+            border: 1px solid #ddd;
+            background: #fff;
+            overflow: auto;
+            position: absolute;
+            max-height: 150px;
+            z-index: 1000;
+        }
+
+        .autocomplete-suggestion {
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .autocomplete-suggestion:hover {
+            background: #f0f0f0;
+        }
+
+        .possible-groups {
+            margin-top: 20px;
+        }
+
+        .group-card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .group-card button {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+        }
+
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+            z-index: 1000;
+        }
+
+        .popup.active {
+            display: block;
+        }
+        .sticky-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #fff;
+            border-top: 1px solid #ddd;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .sticky-footer div {
+            text-align: center;
+            flex: 1;
+        }
+        .sticky-footer div a {
+            text-decoration: none;
+            color: #333;
+        }
+
+        .sticky-footer div i {
+            display: block;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>Home Page</h1>
+    </header>
+    <main class="container">
+        <h2>Maps:</h2>
+        <div id="map"></div>
+        <div class="form-group">
+            <label for="location">Address:</label>
+            <input type="text" name="location" id="location" required>
+            <button type="button" id="search-button">Search</button>
+        </div>
+
+        <div class="possible-groups">
+            <h3>Possible groups:</h3>
+            <div id="groups-list"></div>
+        </div>
+    </main>
+
+    <div id="popup" class="popup">
+        <h3>Group details</h3>
+        <div id="popup-info"></div>
+        <button id="join-button" class="btn">Join</button>
+        <button id="close-popup" class="btn">Close</button>
+    </div>
+
+    <footer class="sticky-footer">
+    <button onclick="window.location.href='{{ url_for('new_page_view') }}'">
+        <i class="fa fa-home"></i>
+        <span>Menu</span>
+    </button>
+    <button onclick="window.location.href='{{ url_for('chat') }}'">
+        <i class="fa fa-comments"></i>
+        <span>Chat</span>
+    </button>
+    <button onclick="window.location.href='{{ url_for('business') }}'">
+        <i class="fa fa-briefcase"></i>
+        <span>Business</span>
+    </button>
+    <button onclick="window.location.href='{{ url_for('profile') }}'">
+        <i class="fa fa-user"></i>
+        <span>Profile</span>
+    </button>
+</footer>
+
+    
+    
+
+    
+
+<script>
+    const locationInput = document.getElementById('location');
+    const searchButton = document.getElementById('search-button');
+    const groupsList = document.getElementById('groups-list');
+    const popup = document.getElementById('popup');
+    const popupInfo = document.getElementById('popup-info');
+    const joinButton = document.getElementById('join-button');
+    const closePopup = document.getElementById('close-popup');
+
+    // Initialize the map and set the view to a default location
+    const map = L.map('map').setView([51.505, -0.09], 13);
+
+    // Add the OpenStreetMap layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Variables to store the current marker and debounce timer
+    let currentMarker = null;
+
+    // Function to center the map on a location and add a marker
+    function setMapLocation(lat, lon) {
+        map.setView([lat, lon], 13);
+
+        if (currentMarker) {
+            map.removeLayer(currentMarker);
+        }
+
+        currentMarker = L.marker([lat, lon]).addTo(map)
+            .bindPopup("Group Location")
+            .openPopup();
+    }
+
+    // Function to get the user's location and center the map on it
+    function onLocationFound(e) {
+        const lat = e.latlng.lat;
+        const lon = e.latlng.lng;
+
+        setMapLocation(lat, lon);
+
+        // Update the location field with the address
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+            .then(response => response.json())
+            .then(data => {
+                const locationName = data.display_name;
+                locationInput.value = locationName;
+            });
+    }
+
+    function onLocationError(e) {
+        alert(e.message);
+    }
+
+    // Request the user's location
+    map.on('locationfound', onLocationFound);
+    map.on('locationerror', onLocationError);
+    map.locate({ setView: true, maxZoom: 16 });
+
+    // Handle the search button event
+    searchButton.addEventListener('click', () => {
+        const locationText = locationInput.value;
+        if (locationText) {
+            fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(locationText)}&format=json&addressdetails=1`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        const { lat, lon } = data[0];
+                        setMapLocation(lat, lon);
+
+                        // Update the location field with the name of the location
+                        locationInput.value = data[0].display_name;
+                    } else {
+                        alert('Location not found.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error searching for location:', error);
+                    alert('Could not search for location.');
+                });
+        }
+    });
+
+    // Function to show a group in the popup
+    function showGroupPopup(group) {
+        popupInfo.innerHTML = `
+            <div style="display: flex; flex-direction: column;">
+                <div><strong>Name:</strong> ${group.name}</div>
+                <div><strong>Location:</strong> ${group.location}</div>
+                <div><strong>Gender:</strong> ${group.gender}</div>
+                <div><strong>Participants:</strong> ${group.participants}</div>
+            </div>
+        `;
+        popup.classList.add('active');
+    
+        joinButton.addEventListener('click', () => {
+            // Logic to join the group
+            alert(`You have joined the group ${group.name}.`);
+            popup.classList.remove('active');
+        });
+    }
+
+    // Close popup
+    closePopup.addEventListener('click', () => {
+        popup.classList.remove('active');
+    });
+
+    // Get recommended groups and display them
+    fetch('/get_recommended_groups')  // This route should return a JSON with recommended groups
+        .then(response => response.json())
+        .then(data => {
+            groupsList.innerHTML = '';
+            data.groups.forEach(group => {
+                const groupCard = document.createElement('div');
+                groupCard.className = 'group-card';
+                groupCard.innerHTML = `
+                    <h4>${group.name}</h4>
+                    <p>Location: ${group.location}</p>
+                    <p>Gender: ${group.gender}</p>
+                    <p>Participants: ${group.participants}</p>
+                    <button type="button" data-group='${JSON.stringify(group)}'>View Details</button>
+                `;
+                groupsList.appendChild(groupCard);
+            });
+
+            // Add event listeners to the detail buttons
+            document.querySelectorAll('.group-card button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const group = JSON.parse(e.target.dataset.group);
+                    showGroupPopup(group);
+                });
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching recommended groups:', error);
+        });
+</script>
+
+    <footer></footer>
+</body>
+</html>

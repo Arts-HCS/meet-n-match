@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find your groups</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .popup {
+            display: none;
+            position: fixed;
+            top: 20%;
+            left: 50%;
+            transform: translate(-50%, -20%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            width: 80%;
+            max-width: 600px;
+        }
+
+        .popup.visible {
+            display: block;
+        }
+
+        .popup button {
+            display: block;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .popup button:hover {
+            background-color: #0056b3;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        tbody tr {
+            cursor: pointer;
+        }
+
+        .no-groups-message {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #ff0000;
+        }
+
+        .button-container {
+            margin-top: 20px;
+        }
+
+        .button-container button {
+            margin-right: 10px;
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .button-container button:hover {
+            background-color: #0056b3;
+        }
+
+        .interest-selection {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .interest-selection form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .interest-selection label, .interest-selection input {
+            margin-bottom: 10px;
+        }
+
+        .interest-selection input {
+            padding: 8px;
+        }
+
+        .interest-selection button {
+            padding: 8px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .interest-selection button:hover {
+            background-color: #0056b3;
+        }
+
+        .autocomplete {
+            position: absolute;
+            border: 1px solid #ddd;
+            border-top: none;
+            z-index: 1000;
+            background-color: #fff;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .autocomplete div {
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .autocomplete div:hover {
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>Find your groups</h1>
+    </header>
+    <main>
+        {% if groups %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name of the group</th>
+                        <th>Members</th>
+                        <th>Age range</th>
+                        <th>Genders</th>
+                        <th>Address</th>
+                        <th>Business</th>
+                        <th>Tag</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for group in groups %}
+                    <tr data-group='{{ group | tojson }}'>
+                        <td>{{ group.name }}</td>
+                        <td>{{ group.participants }}</td>
+                        <td>{{ group.age_range }}</td>
+                        <td>{{ group.gender }}</td>
+                        <td>{{ group.location }}</td>
+                        <td>
+                            {% if group.business %}
+                            <span>&#10003;</span>
+                            {% else %}
+                            <span>&#10007;</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ group.tag }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="no-groups-message">There are not related groups.</div>
+            <div class="button-container">
+                <button id="search-new-interest">Search a new tag</button>
+                <button id="create-group">Crate your group</button>
+            </div>
+        {% endif %}
+
+        <div id="popup" class="popup">
+            <p id="popup-content">Este es el rectángulo emergente.</p>
+            <p id="popup-participants"></p>
+            <p id="popup-age-range"></p>
+            <p id="popup-gender"></p>
+            <p id="popup-business"></p>
+            <p id="popup-location"></p>
+            <button id="join-button">Join</button>
+            <button id="close-popup">Close</button>
+        </div>
+
+        <div id="interest-selection" class="interest-selection">
+            <h2>Select a new tag</h2>
+            <form action="{{ url_for('search_interest') }}" method="post">
+                <label for="interest">Tag:</label>
+                <input type="text" id="interest" name="interest" placeholder="#interés" required>
+                <button type="submit">Search</button>
+            </form>
+            <div id="autocomplete-list" class="autocomplete"></div>
+        </div>
+    </main>
+    <footer></footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const rows = document.querySelectorAll('tbody tr');
+            const popup = document.getElementById('popup');
+            const popupContent = document.getElementById('popup-content');
+            const popupParticipants = document.getElementById('popup-participants');
+            const popupAgeRange = document.getElementById('popup-age-range');
+            const popupGender = document.getElementById('popup-gender');
+            const popupBusiness = document.getElementById('popup-business');
+            const popupLocation = document.getElementById('popup-location');
+            const closeButton = document.getElementById('close-popup');
+            const joinButton = document.getElementById('join-button');
+            const searchNewInterestButton = document.getElementById('search-new-interest');
+            const createGroupButton = document.getElementById('create-group');
+            const interestSelection = document.getElementById('interest-selection');
+            const interestInput = document.getElementById('interest');
+            const autocompleteList = document.getElementById('autocomplete-list');
+
+            const interests = [
+                "#futbol", "#musica", "#arte", "#karate", "#voleibol", "#ciencia", "#programacion"
+            ];
+
+            rows.forEach(row => {
+                row.addEventListener('click', () => {
+                    const groupData = row.getAttribute('data-group');
+                    
+                    try {
+                        const group = JSON.parse(groupData);
+                        popupContent.textContent = `Name of the group: ${group.name}`;
+                        popupParticipants.textContent = `Participants: ${group.participants}`;
+                        popupAgeRange.textContent = `Age range: ${group.age_range}`;
+                        popupGender.textContent = `Gender: ${group.gender}`;
+                        popupBusiness.textContent = `Business: ${group.business ? 'Yes' : 'No'}`;
+                        popupLocation.textContent = `Address: ${group.location}`;
+                        popup.classList.add('visible');
+                    } catch (e) {
+                        console.error('Error al analizar JSON:', e);
+                        console.log('Contenido del atributo data-group:', groupData);
+                    }
+                });
+            });
+
+            closeButton.addEventListener('click', () => {
+                popup.classList.remove('visible');
+            });
+
+            joinButton.addEventListener('click', () => {
+                window.location.href = '/new_page';  // Asegúrate de que esta ruta esté configurada en tu Flask app
+            });
+
+            searchNewInterestButton.addEventListener('click', () => {
+                interestSelection.style.display = 'block';
+            });
+
+            createGroupButton.addEventListener('click', () => {
+                window.location.href = '/create_group';
+            });
+
+            interestInput.addEventListener('input', () => {
+                const query = interestInput.value.toLowerCase();
+                autocompleteList.innerHTML = '';
+                if (query.length > 0) {
+                    const filteredInterests = interests.filter(interest => interest.toLowerCase().includes(query));
+                    filteredInterests.forEach(interest => {
+                        const div = document.createElement('div');
+                        div.textContent = interest;
+                        div.addEventListener('click', () => {
+                            interestInput.value = interest;
+                            autocompleteList.innerHTML = '';
+                        });
+                        autocompleteList.appendChild(div);
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

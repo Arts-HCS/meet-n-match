@@ -1,0 +1,216 @@
+[
+    {
+        "name": "Lemon Juice",
+        "participants": 8,
+        "age_range": "14-16",
+        "gender": "Masculino",
+        "location": "1499 ALCATRAZ AVE APT 201 BERKELEY CA 94702-2749 USA",
+        "business": true,
+        "tag": "#musica"
+    },
+    {
+        "name": "Rock Band",
+        "participants": 12,
+        "age_range": "16-25",
+        "gender": "Femenino",
+        "location": "1234 MAIN ST, LOS ANGELES, CA 90001 USA",
+        "business": false,
+        "tag": "#musica"
+    },
+    {
+        "name": "Art Enthusiasts",
+        "participants": 20,
+        "age_range": "18-30",
+        "gender": "Masculino",
+        "location": "5678 ART ST, NEW YORK, NY 10001 USA",
+        "business": true,
+        "tag": "#arte"
+    },
+    {
+        "name": "Gallery Goers",
+        "participants": 15,
+        "age_range": "22-35",
+        "gender": "Femenino",
+        "location": "9101 ART ST, SAN FRANCISCO, CA 94101 USA",
+        "business": false,
+        "tag": "#arte"
+    },
+    {
+        "name": "Football Club",
+        "participants": 25,
+        "age_range": "10-18",
+        "gender": "Masculino",
+        "location": "1122 FOOTBALL AVE, MIAMI, FL 33101 USA",
+        "business": true,
+        "tag": "#futbol"
+    },
+    {
+        "name": "Local Soccer Team",
+        "participants": 18,
+        "age_range": "15-25",
+        "gender": "Femenino",
+        "location": "3344 SOCCER ST, HOUSTON, TX 77001 USA",
+        "business": false,
+        "tag": "#futbol"
+    },
+    {
+        "name": "Karate Dojo",
+        "participants": 10,
+        "age_range": "8-16",
+        "gender": "Masculino",
+        "location": "5566 KARATE AVE, SEATTLE, WA 98101 USA",
+        "business": true,
+        "tag": "#karate"
+    },
+    {
+        "name": "Martial Arts Club",
+        "participants": 12,
+        "age_range": "12-20",
+        "gender": "Femenino",
+        "location": "7788 MARTIAL ST, DENVER, CO 80201 USA",
+        "business": false,
+        "tag": "#karate"
+    },
+    {
+        "name": "Science Club",
+        "participants": 22,
+        "age_range": "12-18",
+        "gender": "Masculino",
+        "location": "9911 SCIENCE ST, BOSTON, MA 02101 USA",
+        "business": true,
+        "tag": "#ciencia"
+    },
+    {
+        "name": "Research Group",
+        "participants": 16,
+        "age_range": "16-25",
+        "gender": "Femenino",
+        "location": "1122 RESEARCH ST, CHICAGO, IL 60601 USA",
+        "business": false,
+        "tag": "#ciencia"
+    },
+    {
+        "name": "Programming Workshop",
+        "participants": 30,
+        "age_range": "18-35",
+        "gender": "Masculino",
+        "location": "2233 CODE ST, SAN DIEGO, CA 92101 USA",
+        "business": true,
+        "tag": "#programacion"
+    },
+    {
+        "name": "Dev Meetups",
+        "participants": 25,
+        "age_range": "20-40",
+        "gender": "Femenino",
+        "location": "4455 DEV ST, AUSTIN, TX 73301 USA",
+        "business": false,
+        "tag": "#programacion"
+    },
+    {
+        "name": "Volleyball Club",
+        "participants": 14,
+        "age_range": "12-18",
+        "gender": "Masculino",
+        "location": "6677 VOLLEY ST, ORLANDO, FL 32801 USA",
+        "business": true,
+        "tag": "#voleibol"
+    },
+    {
+        "name": "Beach Volleyball Team",
+        "participants": 12,
+        "age_range": "15-25",
+        "gender": "Femenino",
+        "location": "8899 BEACH ST, CHARLOTTE, NC 28201 USA",
+        "business": false,
+        "tag": "#voleibol"
+    },
+    {
+        "name": "45678",
+        "participants": 2,
+        "age_range": "3-9",
+        "gender": "femenino",
+        "tags": "#helados",
+        "location": "Dwight Way, Southside, Berkeley, Condado de Alameda, California, 94720, Estados Unidos de Am\u00e9rica",
+        "business": false,
+        "tag": "#helados",
+        "code": "146b730f-9ed5-4b25-bd8f-1cbe09052b92"
+    },
+    {
+        "name": "Tenis club",
+        "participants": 23,
+        "age_range": "15-20",
+        "gender": "masculino",
+        "tags": "#tenis",
+        "location": "Wada Hall, 2612, Haste Street, Southside, Berkeley, Condado de Alameda, California, 94720, Estados Unidos de Am\u00e9rica",
+        "business": false,
+        "tag": "#tenis",
+        "code": "10025e2f-1b4f-4b6f-aec6-5bf22bdc064e"
+    },
+    {
+        "name": "Karaoke woosh",
+        "participants": 30,
+        "age_range": "12-20",
+        "gender": "femenino",
+        "tags": "#karaoke",
+        "location": "Wada Hall, 2612, Haste Street, Southside, Berkeley, Condado de Alameda, California, 94720, Estados Unidos de Am\u00e9rica",
+        "business": false,
+        "tag": "#karaoke",
+        "code": "3b5419a3-2f66-428d-91f4-c52f1e41c778"
+    },
+    {
+        "name": "K Group",
+        "participants": 89,
+        "age_range": "19-26",
+        "gender": "masculino",
+        "tags": "#basketball",
+        "location": "Wada Hall, 2612, Haste Street, Southside, Berkeley, Condado de Alameda, California, 94720, Estados Unidos de Am\u00e9rica",
+        "business": false,
+        "tag": "#basketball",
+        "code": "49b0f876-05e8-4c18-ae84-bd5ca9173870"
+    },
+    {
+        "name": "Nolan club",
+        "participants": 30,
+        "age_range": "15-29",
+        "gender": "femenino",
+        "tags": "#nolan",
+        "location": "Wada Hall, 2612, Haste Street, Southside, Berkeley, Condado de Alameda, California, 94720, Estados Unidos de Am\u00e9rica",
+        "business": false,
+        "tag": "#nolan",
+        "code": "8497fb8c-ddf5-4b9c-8ad2-52f8413d08d6"
+    },
+    {
+        "name": "Music club",
+        "participants": 34,
+        "age_range": "10-19",
+        "gender": "otro",
+        "tags": "#music",
+        "location": "2605, Haste Street, Southside, Berkeley, Condado de Alameda, California, 94720, Estados Unidos de Am\u00e9rica",
+        "business": false,
+        "tag": "#music",
+        "code": "68dd26ae-2acc-4e65-ad6b-9fd783d7c453"
+    },
+    {
+        "name": "Yoga club",
+        "participants": 66,
+        "age_range": "87-22",
+        "gender": "masculino",
+        "tags": "ni",
+        "location": "Callej\u00f3n San Miguel, Colonia Am\u00e9rica 143, Ciudad de M\u00e9xico, Coyoac\u00e1n, Ciudad de M\u00e9xico, 04030, M\u00e9xico",
+        "business": false,
+        "tag": "ni",
+        "code": "6f71bb89-4631-4fcb-964c-5d09b1bcc8cb"
+    },
+    {
+        "name": "Tenis",
+        "participants": 90,
+        "age_range": "12-12",
+        "gender": "femenino",
+        "tags": "12",
+        "location": "Callej\u00f3n San Miguel, Colonia Am\u00e9rica 143, Ciudad de M\u00e9xico, Coyoac\u00e1n, Ciudad de M\u00e9xico, 04030, M\u00e9xico",
+        "business": false,
+        "tag": "12",
+        "code": "b6ca9ce4-5557-47c3-8712-d54cd379298e"
+    }
+]
