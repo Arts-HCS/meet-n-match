@@ -15,7 +15,7 @@
 
 ## Screenshot
 
-<img width="1470" height="799" alt="Screenshot 2025-07-29 at 18 59 47" src="https://github.com/user-attachments/assets/22a03389-43bf-44f2-8a73-1b2210c8b3fe" />
+<img width="1470" height="799" alt="Screenshot 2025-07-29 at 19 08 37" src="https://github.com/user-attachments/assets/df12e8d3-d3d9-4bd8-9d09-4b8ea4522d05" />
 
 ---
 
